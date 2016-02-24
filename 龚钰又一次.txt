@@ -1,0 +1,112 @@
+Mac搭建svn服务器  ：
+
+1.创建svn repository  
+
+注意：假如报错(可尝试：sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer)
+常用的命令”
+pwd:用户当前目录
+ls -a 显示这个路径下所有的文件
+cd  +路径 进入这个路径下  
+两种方式：第一种直接在用户主目录下创建：
+
+ mkdir  ~/svn            
+ cd  ~/svn
+ mkdir  myProject
+ svnadmin  create  ~/svn/myProject  (初始化svn文件) ps(桌面创建代码:Last login: Tue Jan 26 16:55:06 on ttys000
+mac:~ mac$ cd desktop
+mac:desktop mac$ mkdir svn
+mkdir: svn: File exists
+mac:desktop mac$ mkdir svn
+mac:desktop mac$ cd svn
+mac:svn mac$ mkdir myProject
+mac:svn mac$ svnadmin create myProject
+mac:svn mac$  
+
+)
+ 注意myProject里面的文件就svn admin给你建立的
+
+//建议用方法二S
+第二种方式：自己指定路径，比如Desktop/svn/myProject
+需要在指定路径下先创建好svn/myProject目录，然后输入命令（终端）：
+svnadmin create /Users/mac/Desktop/svn/myProject
+
+2.在创建的svn/myProject/conf目录下存在3个文件：authz(认证),passwd(密码),svnserve.conf(配置)
+第一步：配置svnserve.conf
+＃anon-access = read＃auth-access = write＃password-db = passwd  //指向passwd这个配置文件＃authz-db = authz //指向authz这个配置文件
+四行前的＃号去掉，再将anon-access = read改为anon-access = none，这样禁止匿名访问
+PS：这里要注意的，在＃号后是有空格的，得去掉这个空格，上文字顶格，不然也有错误
+
+第二步：配置passwd
+里面存的是用户与密码，有示例，直接按照它的格式添加用户和密码就可以了
+test1=123
+test2=456
+
+第三步：编辑认证文件：authz文件
+格式为 [groups]
+用户组名 = 用户组成员
+[需要授权的目录]
+@组名 = 权限
+用户名 = 权限
+
+
+例如：
+[groups]
+g_developers = jcccn,jesse,bill  //权限组  = 用户
+g_tester = jerry,wang     //权限组  = 用户
+[/]
+@g_developer = r    组的权限
+jcccn = rw    用户权限
+* =
+[/jcccn]
+@g_tester = raw
+jcccn = rw
+* = r
+
+例子 2(建议用例子2)
+
+[groups]
+harry_and_sally = shi  (ps:zhangsan,dabao)
+
+[/]
+
+@harry_and_sally = rw
+* = r
+
+3. 启动SVN服务
+ps:注意,-r 后面不能写两个空格.另外如果你得svn是在桌面上的话,那么路径要加上svnserve -d -r
+/Users/mac/Desktop/svn
+
+svnserve -d -r /你的路径/svn
+svnserve -d -r  /Users/mac/svn  特别注意，路径一定是SVN的目录，不是其中一个版本库的目录，不然，能正常启动，就是访问有问题
+没有任何输出，则启动成功
+注意：假如启动失败 报错原因为：svnserve: Can’t bind server socket: Address already in use
+
+解决办法：
+1.ps -aux | grep svn
+kill pid（pid为ps出的pid这样就停止服务了）
+
+2.我们可以试着重新指定一个端口8081 使用 –listen-port 8081参数。
+svnserve -d -r /home/svn/ –listen-port 8081
+默认的启动svn服务，系统默认开启的端口为3690，当你启动第二个版本库时还是开启3690，所以就冲突了。
+
+4.关闭 killall -9 svnserve
+
+5.用svn工具，连接  svn://127.0.0.1/myProject
+
+注意：Xcode自带的svn和Versions以及一些其它工具都默认忽略 “.a” 文件。
+方法一：使用命令行添加文件
+1.打开终端，输入cd，空格，然后将需要上传的.a文件所在的文件夹（不是.a文件）拖拽到终端（此办法无需输入繁琐的路径，快捷方便） ，回车；
+2.之后再输入如下命令：svn add libOCMock.a，回车；
+3.之后会出现：A  (bin)  libOCMock.a
+   表示添加成功，打开Versions就可以看到，刚才添加的.a文件，此时就可以手动上传了。
+   另外，在mac 10.8中输入命令行，可能会提示你command not found，因为10.8默认没有安装Command line tools，解决办法：command not found解决方法。
+
+方法二：在Versions中手动添加文件
+选择Versions的菜单View-->Show Ignored Items，这样就会显示出ignored的文件，找到你要上传的.a文件，右键“Add”就可以了
+
+
+ 
+
+
+
+
