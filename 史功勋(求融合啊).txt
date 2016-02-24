@@ -1,0 +1,4 @@
+国际化
+1,添加InfoPlist.strings 文件来适配程序的名字
+2,Localizable.strings 适配程序内的文字
+3,图片的适配,进到文件夹替换文件
